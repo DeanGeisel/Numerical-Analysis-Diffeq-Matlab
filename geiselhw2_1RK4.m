@@ -1,0 +1,94 @@
+%%%%%%geiselhw2_1RK4
+%%%%%%by Dean Geisel
+%%%%%%for Dr. Mohamed Sulman
+%%%%%%in MTH 7170
+%--------------------------------------------------------------------------
+%%%%%%This script is written to approximate the IVP given in problem 1 of
+%%%%%%homework 2 using Runge Kuta Order 4 Method, graph the 
+%%%%%%approximation, then verify second order error.
+%%%%%%It will be accompanied by script for Euler(explicit) and RK2.
+%--------------------------------------------------------------------------
+%calculate U values
+
+h=0.05;                  %%%%step size for t
+t0=0;                    %%%%initial value for t
+tf=1;                    %%%%final value for t
+m=(tf-t0)/h;             %%%%Number of intervals of t
+t=linspace(t0,tf,m+1);     %%%%Discretize t 
+        %%%%%note:t(1)=t0, t(m+1)=tf
+u=zeros(m+1,1);             %%%%Vector for u values
+u(1)=1 ;                  %%%%Initial condition for u in the u vector
+f=zeros(m,1);             %%%%Vector for function values
+f2=zeros(m,1);
+f3=zeros(m,1);
+f4=zeros(m,1);
+for n=1:1:m               %%%%Recursive formula for Euler forward(explicit)
+    f(n)=exp(t(n)-u(n));
+    f2(n)=exp((t(n)+0.5*h)-(u(n)+h*0.5*f(n)));
+    f3(n)=exp((t(n)+0.5*h)-(u(n)+h*0.5*f2(n)));
+    f4(n)=exp((t(n)+h)-(u(n)+h*f3(n)));    
+    u(n+1)=u(n)+(h*(f(n)+2*f2(n)+2*f3(n)+f4(n)))/6;
+end
+
+%-------------------------------------------------------------------------
+%Plot solution curve
+
+disp (u)
+figure (1)
+plot (t,u)
+xlabel ('time "t"')
+ylabel ('function value "u"')
+title ('approximation')
+%-------------------------------------------------------------------------
+%Verify first degree accuracy
+
+%%%Modified script from HW 1
+%%%The purpose of this script is to caclulate L1 and L2 Norm errors in the
+%%%numerical solution for problem 1 of HW set n. The n values are
+%%%17,33,65,129
+
+%-------------------------------------------------------------------------
+testval=[17,33,65,129];
+for i=1:1:4
+mesh=testval(i); %number of evaluated points
+int=(tf-t0);%given interval of x values
+hdep=int/(mesh-1);%calculate step size based on interval number
+H(i)=hdep; %Store H values for covergence rate
+
+tdep=linspace(t0,tf,mesh);     %%%%Discretize t 
+        %%%%%note:tdep(1)=t0, tdep(mesh)=tf
+U=zeros(mesh,1);             %%%%Vector for u values
+U(1)=u(1) ;                  %%%%Initial condition for u in the u vector
+fdep=zeros(mesh-1,1);        %%%%Vector for function values
+f2dep=zeros(mesh-1,1);
+f3dep=zeros(mesh-1,1);
+f4dep=zeros(mesh-1,1);
+
+    for n=1:1:mesh-1              %%%%Recursive formula for Euler forward(explicit)
+    fdep(n)=exp(tdep(n)-U(n));
+    f2dep(n)=exp((tdep(n)+0.5*hdep)-(U(n)+0.5*hdep*fdep(n)));
+    f3dep(n)=exp((tdep(n)+0.5*hdep)-(U(n)+0.5*hdep*f2dep(n)));
+    f4dep(n)=exp((tdep(n)+hdep)-(U(n)+hdep*f3dep(n)));
+    U(n+1)=U(n)+(hdep*(fdep(n)+2*f2dep(n)+2*f3dep(n)+f4dep(n)))/6;
+   end
+exact=@(x)log(exp(x)+exp(1)-1); %given exact solution
+L=linspace(t0,tf,mesh);%finding values to be evaluated for exact
+clear exactval;
+for k=1:1:mesh
+exactval(k)=exact (L(k));
+end
+E=abs(exactval'-U);
+L1(i)=hdep*norm(E(:),1);
+L2(i)=(hdep^(1/2))*norm(E(:));
+end
+figure (2)
+loglog(L1,H,'-.o')
+for p=1:1:3
+    conrate1(p)=(log10(abs(L1(p+1)-L1(p))))/(log10(abs(H(p+1)-H(p))));
+    conrate2(p)=(log10(abs(L2(p+1)-L2(p))))/(log10(abs(H(p+1)-H(p))));
+end
+L1
+L2
+conrate1
+conrate2
+
